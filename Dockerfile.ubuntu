@@ -1,36 +1,24 @@
-FROM blackcoinnl/blackcoin-more-base-x86_64:master as build
+FROM blackcoinnl/blackcoin-more-26.2.0-base-x86_64:26.x as build
 RUN echo "Building Ubuntu Package"
 #
 # Collect dependencies
 #
-FROM ubuntu:20.04
+FROM debian:stable-slim
 ENV TZ=Etc/UTC
 ENV DEBIAN_FRONTEND=noninteractive
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
-		apt-get update && \
-			apt-get -yqq upgrade && \
-				apt-get  -yqq install \
-						libboost-all-dev \
-						systemtap-sdt-dev \
-						libsqlite3-dev \
-						libnatpmp-dev \
-						libzmq3-dev \
-						libminiupnpc-dev \
-						libevent-dev \
-						libssl-dev \
-						libprotobuf-dev \
-						protobuf-compiler \
-                        libqrencode-dev \
-						qtbase5-dev \
-						qtwayland5 \
-						qttools5-dev \
-						qttools5-dev-tools 
+    apt update && apt -yqq full-upgrade && \
+    apt -yqq --no-install-recommends install libminiupnpc17 libevent-2.1-7 libnatpmp1 libevent-pthreads-2.1-7 libzmq5 libsqlite3-0 && \
+    rm -rf /var/lib/apt/lists/* && \
+	apt clean && rm -rf /usr/share/doc /usr/share/man /usr/share/locale /tmp/*
 #
 # Copy the binaries from the build to our new container
 #
 COPY --from=build /blackcoin-more/src/blackmored /usr/local/bin
 COPY --from=build /blackcoin-more/src/blackmore-cli /usr/local/bin
-COPY --from=build /blackcoin-more/src/qt/blackmore-qt /usr/local/bin
+COPY --from=build /blackcoin-more/src/blackmore-tx /usr/local/bin
+COPY --from=build /blackcoin-more/src/blackmore-wallet /usr/local/bin
+COPY --from=build /blackcoin-more/src/blackmore-util /usr/local/bin
 COPY --from=build /usr/bin/bc /usr/bin
 COPY --from=build /usr/bin/jq /usr/bin
 #

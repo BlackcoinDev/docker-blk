@@ -2,7 +2,7 @@ FROM ubuntu:20.04
 ENV TZ=Etc/UTC
 ENV HUBLAB=github
 ENV GITNAME=CoinBlack
-ENV BRANCH=master
+ENV BRANCH=26.x
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
@@ -27,18 +27,14 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone &
                           bsdmainutils \
                           python3 \
                           libevent-dev \
-                          libboost-all-dev \
+                          libboost-dev \
                           libminiupnpc-dev \
                           libnatpmp-dev \
                           libsqlite3-dev \
                           systemtap-sdt-dev \
                           libzmq3-dev \
-                          libssl-dev \
-                          gperf \
                         # for qt
                           libqrencode-dev \
-                          libprotobuf-dev \
-                          protobuf-compiler \
                           qtbase5-dev \
                           qtwayland5 \
                           qttools5-dev \
@@ -52,19 +48,21 @@ RUN git clone -b $BRANCH https://$HUBLAB.com/$GITNAME/blackcoin-more.git && \
       cd db-6.2.38/build_unix && \
       mkdir -p build && \
       BDB_PREFIX=$(pwd)/build && \
-      ../dist/configure --disable-shared  -disable-replication --enable-cxx --with-pic  --prefix=$BDB_PREFIX --with-gui=no --enable-glibc-back-compat --enable-reduce-exports --disable-tests --disable-bench --disable-gui-tests --disable-man && \
+      ../dist/configure --enable-cxx --disable-shared --with-pic --prefix=$BDB_PREFIX && \
       make install && \
       cd ../.. && \
       cd blackcoin-more/  && ./autogen.sh && \
-      ./configure CPPFLAGS="-I${BDB_PREFIX}/include/ -O2" LDFLAGS="-L${BDB_PREFIX}/lib/" --enable-upnp-default --disable-man --enable-sse2 --disable-tests --disable-bench --enable-reduce-exports && \
-      make -j4 && \
-      cd src/ && \
-      strip blackmore*) && \
+      ./configure LDFLAGS="-L${BDB_PREFIX}/lib/" CPPFLAGS="-I${BDB_PREFIX}/include/" --enable-glibc-back-compat --enable-upnp-default --disable-man --enable-sse2 --disable-tests --disable-bench --enable-fuzz=no --enable-fuzz-binary=no --enable-reduce-exports && \
+      make -j$(nproc) && \
+      strip src/blackmore* src/qt/blackmore-qt) && \
 #
 # Prepare for minimal package
 #
   cp /blackcoin-more/src/blackmored /usr/local/bin/ && \
   cp /blackcoin-more/src/blackmore-cli /usr/local/bin/ && \
+  cp /blackcoin-more/src/blackmore-tx /usr/local/bin/ && \
+  cp /blackcoin-more/src/blackmore-wallet /usr/local/bin/ && \
+  cp /blackcoin-more/src/blackmore-util /usr/local/bin/ && \
   cp /blackcoin-more/src/qt/blackmore-qt /usr/local/bin/ && \
   mkdir /parts  && \
   cd  /parts  && \
@@ -72,6 +70,12 @@ RUN git clone -b $BRANCH https://$HUBLAB.com/$GITNAME/blackcoin-more.git && \
   for i in `ldd /usr/local/bin/blackmored | grep -v linux-vdso.so.1 | awk {' if ( $3 == "") print $1; else print $3 '}`; do cp --parents $i ./; done && \
   cp --parents /usr/local/bin/blackmore-cli ./ && \
   for i in `ldd /usr/local/bin/blackmore-cli | grep -v linux-vdso.so.1 | awk {' if ( $3 == "") print $1; else print $3 '}`; do cp --parents $i ./; done && \
+  cp --parents /usr/local/bin/blackmore-tx ./ && \
+  for i in `ldd /usr/local/bin/blackmore-tx | grep -v linux-vdso.so.1 | awk {' if ( $3 == "") print $1; else print $3 '}`; do cp --parents $i ./; done && \
+  cp --parents /usr/local/bin/blackmore-wallet ./ && \
+  for i in `ldd /usr/local/bin/blackmore-wallet | grep -v linux-vdso.so.1 | awk {' if ( $3 == "") print $1; else print $3 '}`; do cp --parents $i ./; done && \
+  cp --parents /usr/local/bin/blackmore-util ./ && \
+  for i in `ldd /usr/local/bin/blackmore-util | grep -v linux-vdso.so.1 | awk {' if ( $3 == "") print $1; else print $3 '}`; do cp --parents $i ./; done && \
   cp /usr/bin/bc --parents ./ && \
   for i in `ldd /usr/bin/bc | grep -v linux-vdso.so.1 | awk {' if ( $3 == "") print $1; else print $3 '}`; do cp --parents $i ./; done && \
   cp /usr/bin/jq --parents ./ && \

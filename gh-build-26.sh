@@ -21,14 +21,14 @@ echo ${SYSTYPE}
 echo ${TZ}
 
 # tag names
-base="${DockerHub}/blackcoin-more-base-${SYSTYPE}:${BRANCH}"
+base="${DockerHub}/blackcoin-more-26.2.0-base-${SYSTYPE}:${BRANCH}"
 minimal="${DockerHub}/blackcoin-more-26.2.0-minimal-${SYSTYPE}:${BRANCH}"
 ubuntu="${DockerHub}/blackcoin-more-26.2.0-ubuntu-${SYSTYPE}:${BRANCH}"
 
 # build
-# ubase (base using ubuntu)
+# minbase (base using ubuntu)
 # ubuntu (package with full ubuntu distro)
-docker build -t ${base} --network=host -f ${BASE_DIR}/Dockerfile.ubase ${BASE_DIR}
+docker build -t ${base} --network=host -f ${BASE_DIR}/Dockerfile.minbase ${BASE_DIR}
 if [ $? -ne 0 ]; then
     echo "Error building base image" && exit 1
 fi
