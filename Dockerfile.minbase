@@ -1,0 +1,69 @@
+FROM ubuntu:20.04
+ENV TZ=Etc/UTC
+ENV HUBLAB=github
+ENV GITNAME=CoinBlack
+ENV BRANCH=master
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
+      apt-get update && apt-get install -yqq \
+                          wget \
+                          curl \
+                          jq \
+                          bc \
+                          git \
+                          make \
+                          cmake \
+                          patch \
+                          bison \
+                          file \
+                          autoconf \
+                          automake \
+                          libtool \
+                          libevent-dev \
+                          build-essential \
+                          autotools-dev \
+                          pkg-config \
+                          bsdmainutils \
+                          python3 \
+                          libevent-dev \
+                          libboost-all-dev \
+                          libminiupnpc-dev \
+                          libnatpmp-dev \
+                          libsqlite3-dev \
+                          systemtap-sdt-dev \
+                          libzmq3-dev \
+                          libssl-dev \
+                          gperf
+#
+# Build Blackcoin More
+#
+RUN git clone -b $BRANCH https://$HUBLAB.com/$GITNAME/blackcoin-more.git && \
+      (wget https://source.ipfire.org/source-2.x/db-6.2.38.tar.gz && \
+      tar -xvf db-6.2.38.tar.gz && \
+      cd db-6.2.38/build_unix && \
+      mkdir -p build && \
+      BDB_PREFIX=$(pwd)/build && \
+      ../dist/configure --disable-shared  -disable-replication --enable-cxx --with-pic  --prefix=$BDB_PREFIX --with-gui=no --enable-glibc-back-compat --enable-reduce-exports --disable-tests --disable-bench --disable-gui-tests --disable-man && \
+      make install && \
+      cd ../.. && \
+      cd blackcoin-more/  && ./autogen.sh && \
+      ./configure CPPFLAGS="-I${BDB_PREFIX}/include/ -O2" LDFLAGS="-L${BDB_PREFIX}/lib/" --enable-upnp-default --disable-man --enable-sse2 --disable-tests --disable-bench --enable-reduce-exports && \
+      make -j4 && \
+      cd src/ && \
+      strip blackmore*) && \
+#
+# Prepare for minimal package
+#
+  cp /blackcoin-more/src/blackmored /usr/local/bin/ && \
+  cp /blackcoin-more/src/blackmore-cli /usr/local/bin/ && \
+  mkdir /parts  && \
+  cd  /parts  && \
+  cp --parents /usr/local/bin/blackmored ./ && \
+  for i in `ldd /usr/local/bin/blackmored | grep -v linux-vdso.so.1 | awk {' if ( $3 == "") print $1; else print $3 '}`; do cp --parents $i ./; done && \
+  cp --parents /usr/local/bin/blackmore-cli ./ && \
+  for i in `ldd /usr/local/bin/blackmore-cli | grep -v linux-vdso.so.1 | awk {' if ( $3 == "") print $1; else print $3 '}`; do cp --parents $i ./; done && \
+  cp /usr/bin/bc --parents ./ && \
+  for i in `ldd /usr/bin/bc | grep -v linux-vdso.so.1 | awk {' if ( $3 == "") print $1; else print $3 '}`; do cp --parents $i ./; done && \
+  cp /usr/bin/jq --parents ./ && \
+  for i in `ldd /usr/bin/jq | grep -v linux-vdso.so.1 | grep -v libjq.so.1 | awk {' if ( $3 == "") print $1; else print $3 '}`; do cp --parents $i ./; done

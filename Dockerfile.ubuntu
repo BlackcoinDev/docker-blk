@@ -1,0 +1,42 @@
+FROM blackcoinnl/blackcoin-more-base-x86_64:master as build
+RUN echo "Building Ubuntu Package"
+#
+# Collect dependencies
+#
+FROM ubuntu:20.04
+ENV TZ=Etc/UTC
+ENV DEBIAN_FRONTEND=noninteractive
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
+		apt-get update && \
+			apt-get -yqq upgrade && \
+				apt-get  -yqq install \
+						libboost-all-dev \
+						systemtap-sdt-dev \
+						libsqlite3-dev \
+						libnatpmp-dev \
+						libzmq3-dev \
+						libminiupnpc-dev \
+						libevent-dev \
+						libssl-dev \
+						libprotobuf-dev \
+						protobuf-compiler \
+                        libqrencode-dev \
+						qtbase5-dev \
+						qtwayland5 \
+						qttools5-dev \
+						qttools5-dev-tools 
+#
+# Copy the binaries from the build to our new container
+#
+COPY --from=build /blackcoin-more/src/blackmored /usr/local/bin
+COPY --from=build /blackcoin-more/src/blackmore-cli /usr/local/bin
+COPY --from=build /blackcoin-more/src/qt/blackmore-qt /usr/local/bin
+COPY --from=build /usr/bin/bc /usr/bin
+COPY --from=build /usr/bin/jq /usr/bin
+#
+# Expose the port for the RPC interface
+#
+EXPOSE 15714/tcp
+EXPOSE 15715/tcp
+EXPOSE 25714/tcp
+EXPOSE 25715/tcp
