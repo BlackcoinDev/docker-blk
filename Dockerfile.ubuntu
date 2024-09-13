@@ -1,5 +1,5 @@
 FROM blackcoinnl/blackcoin-more-26.2.0-base-x86_64:26.x as build
-RUN echo "Building Ubuntu Package"
+RUN echo "Building Debian Package"
 #
 # Collect dependencies
 #
