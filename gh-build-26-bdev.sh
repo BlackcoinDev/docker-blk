@@ -5,7 +5,7 @@ moreBuilder=${BASE_DIR}/moreBuilder
 rm -fr ${moreBuilder}/*
 
 export SYSTYPE=x86_64
-export DockerHub=blackcoinnl  
+export DockerHub=Blackcoindev  
 export HUBLAB=github
 export GITNAME=BlackcoinDev
 export BRANCH=${GIT_CURRENT_BRANCH}
