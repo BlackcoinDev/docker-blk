@@ -1,4 +1,4 @@
-FROM blackcoinnl/blackcoin-more-26.2.0-base-x86_64:26.x as build
+FROM blackcoinnl/blackcoin-more-26.2.0-base-x86_64:master as build
 RUN echo "Building Debian Package"
 #
 # Collect dependencies
