@@ -1,4 +1,5 @@
 FROM debian:bookworm
+ARG TARGETARCH
 ENV TZ=Etc/UTC
 ENV HUBLAB=github
 ENV GITNAME=CoinBlack
@@ -51,7 +52,8 @@ RUN cd db-6.2.38/build_unix && \
     make install && \
     cd ../../blackcoin-more && \
     ./autogen.sh && \
-    ./configure LDFLAGS="-L${BDB_PREFIX}/lib/" CPPFLAGS="-I${BDB_PREFIX}/include/" --with-gui=no --enable-glibc-back-compat --enable-upnp-default --disable-man --enable-sse2 --disable-tests --disable-bench --enable-fuzz=no --enable-fuzz-binary=no --enable-reduce-exports && \
+    if [ "$TARGETARCH" = "amd64" ]; then SSE_FLAG="--enable-sse2"; else SSE_FLAG=""; fi && \
+    ./configure LDFLAGS="-L${BDB_PREFIX}/lib/" CPPFLAGS="-I${BDB_PREFIX}/include/" --with-gui=no --enable-glibc-back-compat --enable-upnp-default --disable-man $SSE_FLAG --disable-tests --disable-bench --enable-fuzz=no --enable-fuzz-binary=no --enable-reduce-exports && \
     make -j$(nproc)
 
 # Strip the binaries to reduce size
