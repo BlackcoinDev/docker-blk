@@ -14,7 +14,6 @@ minimal="${DockerHub}/blackcoin-more-minimal-v28x:${BRANCH}"
 debian="${DockerHub}/blackcoin-more-debian-v28x:${BRANCH}"
 
 sed -i "s|master|${BRANCH}|" ${BASE_DIR}/Dockerfile.minbase
-sed -i "s|master|${BRANCH}|" ${BASE_DIR}/Dockerfile.ubase
 
 echo "DockerHub Account: ${DockerHub}"
 echo "Git Account: ${GITNAME}"
