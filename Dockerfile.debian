@@ -1,4 +1,5 @@
-FROM blackcoinorg/blackcoin-more-28.4.0-base-x86_64:28.x as build
+ARG BASE_IMAGE=blackcoinorg/blackcoin-more-28.4.0-base:28.x
+FROM ${BASE_IMAGE} as build
 RUN echo "Building Debian Package"
 #
 # Collect dependencies
