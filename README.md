@@ -195,5 +195,5 @@ This uses Docker Buildx to cross-compile and publish both architectures simultan
 For high-performance automated builds, the repository includes a GitHub Actions workflow ([docker_build_push_28.yml](file:///Users/blackcoindev/gitkraken/docker-blk/docker_build_push_28.yml)):
 * **Native Parallel Builders**: Rather than using QEMU emulation (which can take over 2 hours), the workflow builds `linux/amd64` natively on `ubuntu-22.04` and `linux/arm64` natively on `ubuntu-22.04-arm`. This reduces build times to under 10 minutes.
 * **Conditional Optimization**: The base image build ([Dockerfile.minbase](file:///Users/blackcoindev/gitkraken/docker-blk/Dockerfile.minbase)) automatically detects the compilation target and only passes `--enable-sse2` when building for `amd64`, preventing build failures on ARM64.
-* **Manifest Assembly**: Once the native architecture-specific images are published, a final job runs `docker manifest` to assemble them into a unified multi-architecture tag on Docker Hub.
+* **Manifest Assembly**: Once the native architecture-specific images are published, a final job runs `docker buildx imagetools create` to assemble them into a unified multi-architecture tag on Docker Hub.
 

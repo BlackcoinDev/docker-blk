@@ -2,7 +2,7 @@
 
 BASE_DIR=$(dirname $(realpath $0 ))
 
-export DockerHub=blackcoinorg
+export DockerHub=${DOCKER_HUB_USER:-blackcoinorg}
 export HUBLAB=github
 export GITNAME=CoinBlack
 export BRANCH=${GIT_CURRENT_BRANCH}
