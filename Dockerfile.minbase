@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM debian:bookworm
 ENV TZ=Etc/UTC
 ENV HUBLAB=github
 ENV GITNAME=CoinBlack
