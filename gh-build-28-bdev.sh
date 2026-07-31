@@ -38,19 +38,19 @@ echo "Debian Image: ${debian}"
 echo "Minimal Image: ${minimal}"
 
 # 1. Build and push Base image
-docker buildx build --platform ${PLATFORM} -t ${base} --push -f ${BASE_DIR}/Dockerfile.minbase ${BASE_DIR}
+docker buildx build --platform ${PLATFORM} -t ${base} --push -f ${BASE_DIR}/Dockerfile.minbase-bdev ${BASE_DIR}
 if [ $? -ne 0 ]; then
     echo "Error building base image" && exit 1
 fi
 
 # 2. Build and push Debian image
-docker buildx build --platform ${PLATFORM} --build-arg BASE_IMAGE=${base} -t ${debian} --push -f ${BASE_DIR}/Dockerfile.debian ${BASE_DIR}
+docker buildx build --platform ${PLATFORM} --build-arg BASE_IMAGE=${base} -t ${debian} --push -f ${BASE_DIR}/Dockerfile.debian-bdev ${BASE_DIR}
 if [ $? -ne 0 ]; then
     echo "Error building debian image" && exit 1
 fi
 
 # 3. Build and push Minimal image
-docker buildx build --platform ${PLATFORM} --build-arg BASE_IMAGE=${base} -t ${minimal} --push -f ${BASE_DIR}/Dockerfile.minimal ${BASE_DIR}
+docker buildx build --platform ${PLATFORM} --build-arg BASE_IMAGE=${base} -t ${minimal} --push -f ${BASE_DIR}/Dockerfile.minimal-bdev ${BASE_DIR}
 if [ $? -ne 0 ]; then
     echo "Error building minimal image" && exit 1
 fi

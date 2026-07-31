@@ -1,0 +1,31 @@
+ARG BASE_IMAGE=blackcoindev/blackcoin-more-28.4.0-base:v28-SEGWIT
+FROM ${BASE_IMAGE} as build
+RUN echo "Building Debian Package"
+#
+# Collect dependencies
+#
+FROM debian:bookworm-slim
+ENV TZ=Etc/UTC
+ENV DEBIAN_FRONTEND=noninteractive
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
+    apt update && apt -yqq full-upgrade && \
+    apt -yqq --no-install-recommends install libminiupnpc17 libevent-2.1-7 libnatpmp1 libevent-pthreads-2.1-7 libzmq5 libsqlite3-0 && \
+    rm -rf /var/lib/apt/lists/* && \
+    apt clean && rm -rf /usr/share/doc /usr/share/man /usr/share/locale /tmp/*
+#
+# Copy the binaries from the build to our new container
+#
+COPY --from=build /blackcoin-more/src/blackmored /usr/local/bin
+COPY --from=build /blackcoin-more/src/blackmore-cli /usr/local/bin
+COPY --from=build /blackcoin-more/src/blackmore-tx /usr/local/bin
+COPY --from=build /blackcoin-more/src/blackmore-wallet /usr/local/bin
+COPY --from=build /blackcoin-more/src/blackmore-util /usr/local/bin
+COPY --from=build /usr/bin/bc /usr/bin
+COPY --from=build /usr/bin/jq /usr/bin
+#
+# Expose the port for the RPC interface
+#
+EXPOSE 15714/tcp
+EXPOSE 15715/tcp
+EXPOSE 25714/tcp
+EXPOSE 25715/tcp

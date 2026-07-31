@@ -1,0 +1,85 @@
+FROM debian:bookworm
+ARG TARGETARCH
+ENV TZ=Etc/UTC
+ENV HUBLAB=github
+ENV GITNAME=BlackcoinDev
+ENV BRANCH=v28-SEGWIT
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
+      apt-get update && apt-get install -yqq \
+                          wget \
+                          curl \
+                          jq \
+                          bc \
+                          git \
+                          make \
+                          cmake \
+                          patch \
+                          bison \
+                          file \
+                          autoconf \
+                          automake \
+                          libtool \
+                          libevent-dev \
+                          build-essential \
+                          autotools-dev \
+                          pkg-config \
+                          bsdmainutils \
+                          python3 \
+                          libevent-dev \
+                          libboost-dev \
+                          libminiupnpc-dev \
+                          libnatpmp-dev \
+                          libsqlite3-dev \
+                          systemtap-sdt-dev \
+                          libzmq3-dev
+#
+# Build Blackcoin More
+#
+# Clone the repository
+RUN git clone -b $BRANCH https://$HUBLAB.com/$GITNAME/blackcoin-more.git
+
+# Download the Berkeley DB source and extract it
+RUN wget https://source.ipfire.org/source-2.x/db-6.2.38.tar.gz && \
+    tar -xvf db-6.2.38.tar.gz
+
+# Build Berkeley DB and Blackcoin More
+RUN cd db-6.2.38/build_unix && \
+    mkdir -p build && \
+    BDB_PREFIX=$(pwd)/build && \
+    ../dist/configure --enable-cxx --disable-shared --with-pic --prefix=$BDB_PREFIX && \
+    make install && \
+    cd ../../blackcoin-more && \
+    ./autogen.sh && \
+    if [ "$TARGETARCH" = "amd64" ]; then SSE_FLAG="--enable-sse2"; else SSE_FLAG=""; fi && \
+    ./configure LDFLAGS="-L${BDB_PREFIX}/lib/" CPPFLAGS="-I${BDB_PREFIX}/include/" --with-gui=no --enable-glibc-back-compat --enable-upnp-default --disable-man $SSE_FLAG --disable-tests --disable-bench --enable-fuzz=no --enable-fuzz-binary=no --enable-reduce-exports && \
+    make -j$(nproc)
+
+# Strip the binaries to reduce size
+RUN cd blackcoin-more/src && \
+    strip blackmore* && \
+#
+# Prepare for minimal package
+#
+  cp /blackcoin-more/src/blackmored /usr/local/bin/ && \
+  cp /blackcoin-more/src/blackmore-cli /usr/local/bin/ && \
+  cp /blackcoin-more/src/blackmore-tx /usr/local/bin/ && \
+  cp /blackcoin-more/src/blackmore-wallet /usr/local/bin/ && \
+  cp /blackcoin-more/src/blackmore-util /usr/local/bin/ && \
+  mkdir /parts  && \
+  cd  /parts  && \
+  cp --parents /usr/local/bin/blackmored ./ && \
+  for i in `ldd /usr/local/bin/blackmored | grep -v linux-vdso.so.1 | awk {' if ( $3 == "") print $1; else print $3 '}`; do cp --parents $i ./; done && \
+  cp --parents /usr/local/bin/blackmore-cli ./ && \
+  for i in `ldd /usr/local/bin/blackmore-cli | grep -v linux-vdso.so.1 | awk {' if ( $3 == "") print $1; else print $3 '}`; do cp --parents $i ./; done && \
+  cp --parents /usr/local/bin/blackmore-tx ./ && \
+  for i in `ldd /usr/local/bin/blackmore-tx | grep -v linux-vdso.so.1 | awk {' if ( $3 == "") print $1; else print $3 '}`; do cp --parents $i ./; done && \
+  cp --parents /usr/local/bin/blackmore-wallet ./ && \
+  for i in `ldd /usr/local/bin/blackmore-wallet | grep -v linux-vdso.so.1 | awk {' if ( $3 == "") print $1; else print $3 '}`; do cp --parents $i ./; done && \
+  cp --parents /usr/local/bin/blackmore-util ./ && \
+  for i in `ldd /usr/local/bin/blackmore-util | grep -v linux-vdso.so.1 | awk {' if ( $3 == "") print $1; else print $3 '}`; do cp --parents $i ./; done && \
+  cp /usr/bin/bc --parents ./ && \
+  for i in `ldd /usr/bin/bc | grep -v linux-vdso.so.1 | awk {' if ( $3 == "") print $1; else print $3 '}`; do cp --parents $i ./; done && \
+  cp /usr/bin/jq --parents ./ && \
+  for i in `ldd /usr/bin/jq | grep -v linux-vdso.so.1 | grep -v libjq.so.1 | awk {' if ( $3 == "") print $1; else print $3 '}`; do cp --parents $i ./; done
