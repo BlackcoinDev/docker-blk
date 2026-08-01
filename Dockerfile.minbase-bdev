@@ -8,6 +8,7 @@ ENV BRANCH=v28-SEGWIT
 ENV DEBIAN_FRONTEND=noninteractive
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
     apt-get update && apt-get full-upgrade -yqq && apt-get install -yqq --no-install-recommends \
+    ca-certificates \
     wget \
     curl \
     jq \
