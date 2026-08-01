@@ -1,4 +1,4 @@
-FROM debian:bookworm
+FROM debian:bookworm-slim
 ARG TARGETARCH
 ENV TZ=Etc/UTC
 ENV HUBLAB=github
@@ -7,33 +7,35 @@ ENV BRANCH=v28-SEGWIT
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
-      apt-get update && apt-get install -yqq \
-                          wget \
-                          curl \
-                          jq \
-                          bc \
-                          git \
-                          make \
-                          cmake \
-                          patch \
-                          bison \
-                          file \
-                          autoconf \
-                          automake \
-                          libtool \
-                          libevent-dev \
-                          build-essential \
-                          autotools-dev \
-                          pkg-config \
-                          bsdmainutils \
-                          python3 \
-                          libevent-dev \
-                          libboost-dev \
-                          libminiupnpc-dev \
-                          libnatpmp-dev \
-                          libsqlite3-dev \
-                          systemtap-sdt-dev \
-                          libzmq3-dev
+    apt-get update && apt-get full-upgrade -yqq && apt-get install -yqq --no-install-recommends \
+    wget \
+    curl \
+    jq \
+    bc \
+    git \
+    make \
+    cmake \
+    patch \
+    bison \
+    file \
+    autoconf \
+    automake \
+    libtool \
+    libevent-dev \
+    build-essential \
+    autotools-dev \
+    pkg-config \
+    bsdmainutils \
+    python3 \
+    libevent-dev \
+    libboost-dev \
+    libminiupnpc-dev \
+    libnatpmp-dev \
+    libsqlite3-dev \
+    systemtap-sdt-dev \
+    libzmq3-dev && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 #
 # Build Blackcoin More
 #
@@ -42,7 +44,8 @@ RUN git clone -b $BRANCH https://$HUBLAB.com/$GITNAME/blackcoin-more.git
 
 # Download the Berkeley DB source and extract it
 RUN wget https://source.ipfire.org/source-2.x/db-6.2.38.tar.gz && \
-    tar -xvf db-6.2.38.tar.gz
+    tar -xvf db-6.2.38.tar.gz && \
+    rm db-6.2.38.tar.gz
 
 # Build Berkeley DB and Blackcoin More
 RUN cd db-6.2.38/build_unix && \
@@ -59,27 +62,27 @@ RUN cd db-6.2.38/build_unix && \
 # Strip the binaries to reduce size
 RUN cd blackcoin-more/src && \
     strip blackmore* && \
-#
-# Prepare for minimal package
-#
-  cp /blackcoin-more/src/blackmored /usr/local/bin/ && \
-  cp /blackcoin-more/src/blackmore-cli /usr/local/bin/ && \
-  cp /blackcoin-more/src/blackmore-tx /usr/local/bin/ && \
-  cp /blackcoin-more/src/blackmore-wallet /usr/local/bin/ && \
-  cp /blackcoin-more/src/blackmore-util /usr/local/bin/ && \
-  mkdir /parts  && \
-  cd  /parts  && \
-  cp --parents /usr/local/bin/blackmored ./ && \
-  for i in `ldd /usr/local/bin/blackmored | grep -v linux-vdso.so.1 | awk {' if ( $3 == "") print $1; else print $3 '}`; do cp --parents $i ./; done && \
-  cp --parents /usr/local/bin/blackmore-cli ./ && \
-  for i in `ldd /usr/local/bin/blackmore-cli | grep -v linux-vdso.so.1 | awk {' if ( $3 == "") print $1; else print $3 '}`; do cp --parents $i ./; done && \
-  cp --parents /usr/local/bin/blackmore-tx ./ && \
-  for i in `ldd /usr/local/bin/blackmore-tx | grep -v linux-vdso.so.1 | awk {' if ( $3 == "") print $1; else print $3 '}`; do cp --parents $i ./; done && \
-  cp --parents /usr/local/bin/blackmore-wallet ./ && \
-  for i in `ldd /usr/local/bin/blackmore-wallet | grep -v linux-vdso.so.1 | awk {' if ( $3 == "") print $1; else print $3 '}`; do cp --parents $i ./; done && \
-  cp --parents /usr/local/bin/blackmore-util ./ && \
-  for i in `ldd /usr/local/bin/blackmore-util | grep -v linux-vdso.so.1 | awk {' if ( $3 == "") print $1; else print $3 '}`; do cp --parents $i ./; done && \
-  cp /usr/bin/bc --parents ./ && \
-  for i in `ldd /usr/bin/bc | grep -v linux-vdso.so.1 | awk {' if ( $3 == "") print $1; else print $3 '}`; do cp --parents $i ./; done && \
-  cp /usr/bin/jq --parents ./ && \
-  for i in `ldd /usr/bin/jq | grep -v linux-vdso.so.1 | grep -v libjq.so.1 | awk {' if ( $3 == "") print $1; else print $3 '}`; do cp --parents $i ./; done
+    #
+    # Prepare for minimal package
+    #
+    cp /blackcoin-more/src/blackmored /usr/local/bin/ && \
+    cp /blackcoin-more/src/blackmore-cli /usr/local/bin/ && \
+    cp /blackcoin-more/src/blackmore-tx /usr/local/bin/ && \
+    cp /blackcoin-more/src/blackmore-wallet /usr/local/bin/ && \
+    cp /blackcoin-more/src/blackmore-util /usr/local/bin/ && \
+    mkdir /parts  && \
+    cd  /parts  && \
+    cp --parents /usr/local/bin/blackmored ./ && \
+    for i in `ldd /usr/local/bin/blackmored | grep -v linux-vdso.so.1 | awk {' if ( $3 == "") print $1; else print $3 '}`; do cp --parents $i ./; done && \
+    cp --parents /usr/local/bin/blackmore-cli ./ && \
+    for i in `ldd /usr/local/bin/blackmore-cli | grep -v linux-vdso.so.1 | awk {' if ( $3 == "") print $1; else print $3 '}`; do cp --parents $i ./; done && \
+    cp --parents /usr/local/bin/blackmore-tx ./ && \
+    for i in `ldd /usr/local/bin/blackmore-tx | grep -v linux-vdso.so.1 | awk {' if ( $3 == "") print $1; else print $3 '}`; do cp --parents $i ./; done && \
+    cp --parents /usr/local/bin/blackmore-wallet ./ && \
+    for i in `ldd /usr/local/bin/blackmore-wallet | grep -v linux-vdso.so.1 | awk {' if ( $3 == "") print $1; else print $3 '}`; do cp --parents $i ./; done && \
+    cp --parents /usr/local/bin/blackmore-util ./ && \
+    for i in `ldd /usr/local/bin/blackmore-util | grep -v linux-vdso.so.1 | awk {' if ( $3 == "") print $1; else print $3 '}`; do cp --parents $i ./; done && \
+    cp /usr/bin/bc --parents ./ && \
+    for i in `ldd /usr/bin/bc | grep -v linux-vdso.so.1 | awk {' if ( $3 == "") print $1; else print $3 '}`; do cp --parents $i ./; done && \
+    cp /usr/bin/jq --parents ./ && \
+    for i in `ldd /usr/bin/jq | grep -v linux-vdso.so.1 | grep -v libjq.so.1 | awk {' if ( $3 == "") print $1; else print $3 '}`; do cp --parents $i ./; done
