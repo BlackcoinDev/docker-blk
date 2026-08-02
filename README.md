@@ -57,7 +57,7 @@ docker run -itd \
   --user $(id -u):$(id -g) \
   -p 127.0.0.1:15714:15714 \
   -p 127.0.0.1:15715:15715 \
-  -v /home/$USER/.blackmoreDocker:/.blackmore \
+  -v ~/.blackmoreDocker:/.blackmore \
   blackcoinorg/blackcoin-more-minimal-v28x:28.x \
   blackmored
 ```
@@ -72,7 +72,7 @@ docker run -d \
   -p 15715:15715 \
   -v /path/to/local/data:/root/.blackmore \
   blackcoinorg/blackcoin-more-minimal-v28x:28.x \
-  /usr/local/bin/blackmored
+  blackmored
 ```
 
 ---
@@ -86,7 +86,7 @@ docker run -itd \
   --user $(id -u):$(id -g) \
   -p 127.0.0.1:15714:15714 \
   -p 127.0.0.1:15715:15715 \
-  -v /home/$USER/.blackmoreDocker:/.blackmore \
+  -v ~/.blackmoreDocker:/.blackmore \
   blackcoinorg/blackcoin-more-debian-v28x:28.x \
   blackmored
 ```
@@ -99,6 +99,36 @@ docker run -d \
   -p 15715:15715 \
   -v /path/to/local/data:/root/.blackmore \
   blackcoinorg/blackcoin-more-debian-v28x:28.x \
+  blackmored
+```
+
+---
+
+### Option C: Running the Beta/Development Images (`blackcoindev`)
+
+If you want to test the latest development builds (e.g., those generated via `gh-build-28-bdev.sh`), use the `blackcoindev` namespace images.
+
+#### Minimal Development Image
+```bash
+docker run -itd \
+  --name blackcoindocker-dev \
+  --user $(id -u):$(id -g) \
+  -p 127.0.0.1:15714:15714 \
+  -p 127.0.0.1:15715:15715 \
+  -v ~/.blackmoreDocker:/.blackmore \
+  blackcoindev/blackcoin-more-28.4.0-minimal:v28-SEGWIT \
+  blackmored
+```
+
+#### Full/Debian Development Image
+```bash
+docker run -itd \
+  --name blackcoin-node-full-dev \
+  --user $(id -u):$(id -g) \
+  -p 127.0.0.1:15714:15714 \
+  -p 127.0.0.1:15715:15715 \
+  -v ~/.blackmoreDocker:/.blackmore \
+  blackcoindev/blackcoin-more-28.4.0-debian:v28-SEGWIT \
   blackmored
 ```
 
@@ -158,7 +188,7 @@ services:
       - "127.0.0.1:15714:15714"
       - "127.0.0.1:15715:15715"
     volumes:
-      - /home/username/.blackmoreDocker:/.blackmore
+      - ~/.blackmoreDocker:/.blackmore
     # Command is resolved within the default PATH of the image
     command: ["blackmored", "-printtoconsole"]
 ```
