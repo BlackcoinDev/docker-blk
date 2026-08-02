@@ -1,4 +1,4 @@
-FROM debian:bookworm
+FROM debian:bookworm-slim
 ARG TARGETARCH
 ENV TZ=Etc/UTC
 ENV HUBLAB=github
