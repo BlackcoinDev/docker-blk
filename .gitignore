@@ -1,2 +1,4 @@
 moreBuilder/*
 depends*.*xz
+.vscode/
+.omo

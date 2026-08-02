@@ -1,0 +1,35 @@
+# Stage 1: Dependency Extractor
+FROM debian:trixie-slim AS extractor
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -yqq --no-install-recommends gawk bc jq && rm -rf /var/lib/apt/lists/*
+
+ARG TARGETARCH
+# Copy the compiled binaries from GitHub Actions
+COPY bin/${TARGETARCH}/blackmore* /usr/local/bin/
+
+# Use ldd to find every dynamically linked library and copy them into /parts
+RUN mkdir /parts && cd /parts && \
+    for bin in /usr/local/bin/blackmore*; do \
+      cp --parents $bin ./ && \
+      for i in `ldd $bin | grep -v linux-vdso.so.1 | awk '{ if ( $3 == "") print $1; else print $3 }'`; do \
+        cp --parents $i ./ || true; \
+      done \
+    done && \
+    cp --parents /usr/bin/bc ./ && \
+    for i in `ldd /usr/bin/bc | grep -v linux-vdso.so.1 | awk '{ if ( $3 == "") print $1; else print $3 }'`; do cp --parents $i ./ || true; done && \
+    cp --parents /usr/bin/jq ./ && \
+    for i in `ldd /usr/bin/jq | grep -v linux-vdso.so.1 | grep -v libjq.so.1 | awk '{ if ( $3 == "") print $1; else print $3 }'`; do cp --parents $i ./ || true; done && \
+    find /lib /usr/lib -name "libnss_dns.so*" -exec cp -L --parents {} ./ \; || true && \
+    find /lib /usr/lib -name "libresolv.so*" -exec cp -L --parents {} ./ \; || true && \
+    find /lib /usr/lib -name "libgcc_s.so*" -exec cp -L --parents {} ./ \; || true && \
+    cp --parents -r /etc/ssl/certs ./ || true && \
+    cp --parents -r /usr/share/ca-certificates ./ || true
+
+# Stage 2: The True Minimal Image
+FROM scratch
+COPY --from=extractor /parts /
+
+EXPOSE 15714/tcp
+EXPOSE 15715/tcp
+EXPOSE 25714/tcp
+EXPOSE 25715/tcp

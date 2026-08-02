@@ -48,15 +48,18 @@ RUN wget https://source.ipfire.org/source-2.x/db-6.2.38.tar.gz && \
     rm db-6.2.38.tar.gz && \
     sed -i 's/atomic_init/atomic_init_db/g' db-6.2.38/src/dbinc/atomic.h db-6.2.38/src/mp/mp_region.c db-6.2.38/src/mp/mp_mvcc.c db-6.2.38/src/mp/mp_fget.c db-6.2.38/src/mutex/mut_method.c db-6.2.38/src/mutex/mut_tas.c
 
-# Build Berkeley DB and Blackcoin More
+# Build Berkeley DB
 RUN cd db-6.2.38/build_unix && \
     mkdir -p build && \
     BDB_PREFIX=$(pwd)/build && \
     CFLAGS="-Wno-error=implicit-function-declaration -Wno-error=format-security -Wno-error=implicit-int -O3" ../dist/configure --enable-cxx --disable-shared --disable-replication --with-pic --prefix=$BDB_PREFIX && \
     make libdb_cxx-6.2.a libdb-6.2.a && \
-    make install_lib install_include && \
-    cd ../../blackcoin-more && \
+    make install_lib install_include
+
+# Build Blackcoin More
+RUN cd blackcoin-more && \
     ./autogen.sh && \
+    BDB_PREFIX=/db-6.2.38/build_unix/build && \
     if [ "$TARGETARCH" = "amd64" ]; then SSE_FLAG="--enable-sse2"; else SSE_FLAG=""; fi && \
     ./configure LDFLAGS="-L${BDB_PREFIX}/lib/" CPPFLAGS="-I${BDB_PREFIX}/include/" --without-gui --enable-glibc-back-compat --with-miniupnpc --with-natpmp --disable-man $SSE_FLAG --disable-tests --disable-bench --enable-fuzz=no --enable-fuzz-binary=no --enable-reduce-exports && \
     make -j$(nproc)

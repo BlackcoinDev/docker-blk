@@ -1,0 +1,21 @@
+FROM debian:trixie-slim
+ENV TZ=Etc/UTC
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install only runtime dependencies
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
+    apt-get update && apt-get full-upgrade -yqq && \
+    apt-get -yqq --no-install-recommends install bc jq && \
+    rm -rf /var/lib/apt/lists/* && \
+    apt-get clean && rm -rf /usr/share/doc /usr/share/man /usr/share/locale /tmp/*
+
+# Target architecture automatically populated by Docker Buildx (e.g., amd64, arm64)
+ARG TARGETARCH
+
+# The GitHub Action downloads artifacts into bin/amd64 and bin/arm64
+COPY bin/${TARGETARCH}/blackmore* /usr/local/bin/
+
+EXPOSE 15714/tcp
+EXPOSE 15715/tcp
+EXPOSE 25714/tcp
+EXPOSE 25715/tcp
