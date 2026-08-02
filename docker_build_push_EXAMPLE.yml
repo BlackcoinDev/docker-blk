@@ -1,4 +1,4 @@
-name: Build and Push Docker - EXAMPLE
+name: Build and Push Docker - 28-SEGWIT
 on: [push]
 
 permissions:
