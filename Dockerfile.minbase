@@ -85,4 +85,11 @@ RUN cd blackcoin-more/src && \
     cp /usr/bin/bc --parents ./ && \
     for i in `ldd /usr/bin/bc | grep -v "not found" | grep -v linux-vdso.so.1 | awk {' if ( $3 == "") print $1; else print $3 '}`; do cp --parents $i ./; done && \
     cp /usr/bin/jq --parents ./ && \
-    for i in `ldd /usr/bin/jq | grep -v "not found" | grep -v linux-vdso.so.1 | grep -v libjq.so.1 | awk {' if ( $3 == "") print $1; else print $3 '}`; do cp --parents $i ./; done
+    for i in `ldd /usr/bin/jq | grep -v "not found" | grep -v linux-vdso.so.1 | grep -v libjq.so.1 | awk {' if ( $3 == "") print $1; else print $3 '}`; do cp --parents $i ./; done && \
+    (find /lib /usr/lib -name "libnss_dns.so*" -exec cp -L --parents {} ./ \; || true) && \
+    (find /lib /usr/lib -name "libnss_files.so*" -exec cp -L --parents {} ./ \; || true) && \
+    (find /lib /usr/lib -name "libresolv.so*" -exec cp -L --parents {} ./ \; || true) && \
+    (find /lib /usr/lib -name "libgcc_s.so*" -exec cp -L --parents {} ./ \; || true) && \
+    (cp --parents /etc/nsswitch.conf ./ || true) && \
+    (cp --parents -r /etc/ssl/certs ./ || true) && \
+    (cp --parents -r /usr/share/ca-certificates ./ || true)
